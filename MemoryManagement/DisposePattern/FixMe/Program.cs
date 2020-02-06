@@ -5,8 +5,10 @@ namespace FixMe
 {
     public class MyClass : IDisposable
     {
-        private IntPtr _buffer;       // unmanaged resource
+        private IntPtr _buffer; // unmanaged resource
+
         private SafeHandle _resource; // managed resource
+
         private bool _disposed = false;
 
         public MyClass()
@@ -17,34 +19,44 @@ namespace FixMe
 
         ~MyClass()
         {
-            Dispose(true);
+            Dispose(false);
         }
 
         public virtual void Dispose()
         {
-            Dispose(false);
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
-            if (_disposed)
+            if (this._disposed)
             {
-                throw new ObjectDisposedException("This object is already disposed.");
+                return;
             }
-            _resource.Dispose();
+
+            Marshal.FreeHGlobal(this._buffer);
+
             if (disposing)
             {
                 if (_buffer == null)
                 {
                     Helper.DeallocateBuffer(_buffer);
                 }
+
+                _resource.Dispose();
             }
+
             _disposed = true;
         }
 
         public void DoSomething()
         {
-            // Manupulation with _buffer and _resource.
+            // Manipulation with _buffer and _resource.
+            if (_disposed)
+            {
+                throw new ObjectDisposedException("This object is already disposed.");
+            }
         }
     }
 
