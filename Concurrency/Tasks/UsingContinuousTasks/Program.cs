@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+// ReSharper disable StyleCop.SA1400
 
 namespace UsingContinuousTasks
 {
@@ -63,7 +64,7 @@ namespace UsingContinuousTasks
                     // TODO Set Id of the previous task.
                     int id = 0;
 
-                    // TODO Set inner exception message that happend in the previous task.
+                    // TODO Set inner exception message that happen in the previous task.
                     string message = string.Empty;
 
                     Console.WriteLine("Task {0} failed with exception: {1}", id, message);

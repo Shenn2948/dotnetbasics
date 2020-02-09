@@ -7,96 +7,99 @@ using System.Threading.Tasks;
 
 namespace CancellingTasks
 {
-    class Program
+    public class Program
     {
-        private const int TasksAmount = 20;
         public const string Token = "Thread";
 
-        static void Main(string[] args)
+        private const int TasksAmount = 20;
+
+        public static async Task Main(string[] args)
         {
             string[] urls =
-            {
-                "http://www.learnasync.net/",
-                "http://www.albahari.com/threading/",
-                "http://jonskeet.uk/csharp/threads/",
-                // TODO Uncomment after completing the task.
-                // "http://asd234efwdw23reefsfdsfds.com",
-                "https://codewala.net/2015/07/29/concurrency-vs-multi-threading-vs-asynchronous-programming-explained/",
-            };
+                {
+                    "http://www.learnasync.net/",
+                    "http://www.albahari.com/threading/",
+                    "http://jonskeet.uk/csharp/threads/",
+
+                    // TODO Uncomment after completing the task.
+                    "http://asd234efwdw23reefsfdsfds.com",
+                    "https://codewala.net/2015/07/29/concurrency-vs-multi-threading-vs-asynchronous-programming-explained/",
+                };
 
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
+            var t = Task.Run(
+                () =>
+                    {
+                        // TODO Create a new task with cancellation token and queue it.
+                        Console.WriteLine("Task is started.");
 
-            // TODO Create a new task with cancellation token and queue it.
+                        var webClient = new WebClient();
+
+                        var list = new List<Tuple<string, int>>();
+
+                        foreach (var url in urls)
+                        {
+                            Console.WriteLine("Downloading {0}", url);
+
+                            var bytes = webClient.DownloadData(url);
+
+                            // TODO Cancel the task.
+                            cts.Cancel();
+                            var resultString = Encoding.UTF8.GetString(bytes);
+
+                            // TODO Cancel the task.
+                            cts.Cancel();
+                            var occurences = IndexesOf(resultString, Token).Length;
+                            list.Add(Tuple.Create(url, occurences));
+
+                            // TODO Cancel the task.
+                            cts.Cancel();
+                            Task.Delay(100);
+                        }
+
+                        Console.WriteLine("Task is completed.");
+
+                        // TODO Set task result in list.ToArray().
+                        return list.ToArray();
+                    },
+                ct);
+
+            if (t.IsCompleted)
             {
-                Console.WriteLine("Task is started.");
-
-                var webClient = new WebClient();
-
-                var list = new List<Tuple<string, int>>();
-
-                foreach (var url in urls)
-                {
-                    Console.WriteLine("Downloading {0}", url);
-
-                    var bytes = webClient.DownloadData(url);
-
-                    // TODO Cancel the task.
-
-                    var resultString = Encoding.UTF8.GetString(bytes);
-
-                    // TODO Cancel the task.
-
-                    var occurences = IndexesOf(resultString, Token).Length;
-                    list.Add(Tuple.Create(url, occurences));
-
-                    // TODO Cancel the task.
-
-                    Task.Delay(100);
-                }
-
-                Console.WriteLine("Task is completed.");
-
-                // TODO Set task result in list.ToArray().
-            };
-
-            // TODO Run the block below if the task completed successfully.
-            {
+                // TODO Run the block below if the task completed successfully.
                 Console.WriteLine("Task completed successfully.");
 
                 Tuple<string, int>[] results = null;
 
                 // TODO Set results in task result.
-
+                results = await t.ConfigureAwait(false);
                 foreach (var tuple in results)
                 {
-                    Console.WriteLine("{0} - {1}", tuple.Item1, tuple.Item2);
+                    Console.WriteLine($"{tuple.Item1} - {tuple.Item2}");
                 }
+            }
 
-            };
-
-            // TODO Run the block below if the task was cancelled.
+            if (t.IsCanceled)
             {
+                // TODO Run the block below if the task was cancelled.
                 Console.WriteLine("Task was cancelled.");
-            };
+            }
 
-            // TODO Run the block below if the task failed.
+            if (t.IsFaulted)
             {
-                string exceptionMessage = string.Empty;
+                // TODO Run the block below if the task failed.
 
                 // TODO Set exceptionMessage in inner exception's message.
-
-                Console.WriteLine("Task failed with an exception: {0}", exceptionMessage);
-            };
-
+                string exceptionMessage = t.Exception?.InnerException?.Message;
+                Console.WriteLine($"Task failed with an exception: {exceptionMessage}");
+            }
 
             Console.WriteLine("Press any key to stop the task.");
             Console.ReadKey();
 
-            TaskStatus taskStatus = TaskStatus.Created;
-
             // TODO Set the current task status.
-
+            TaskStatus taskStatus = t.Status;
             Console.WriteLine("Task status is {0}.", taskStatus);
 
             cts.Cancel();
@@ -105,7 +108,7 @@ namespace CancellingTasks
             Console.ReadKey();
 
             // TODO Set the current task status.
-
+            taskStatus = t.Status;
             Console.WriteLine("Task status is {0}.", taskStatus);
 
             Console.WriteLine("Press any key to exit.");
@@ -120,7 +123,7 @@ namespace CancellingTasks
             }
 
             List<int> indexes = new List<int>();
-            for (int index = 0; ; index += value.Length)
+            for (int index = 0;; index += value.Length)
             {
                 index = str.IndexOf(value, index);
                 if (index == -1)
